@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "HollaDieWaldfee",
+  "risk": "2",
+  "title": "InitialETHCrowdfund + ReraiseETHCrowdfund: batchContributeFor function may not refund ETH which leads to loss of funds",
+  "issueId": 7,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/7"
+}
