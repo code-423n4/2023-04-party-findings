@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "HollaDieWaldfee",
+  "risk": "2",
+  "title": "PartyGovernanceNFT.sol: burn function does not reduce totalVotingPower making it impossible to reach unanimous votes",
+  "issueId": 10,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/10"
+}
