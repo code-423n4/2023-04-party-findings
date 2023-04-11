@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "HollaDieWaldfee",
+  "risk": "2",
+  "title": "ETHCrowdfundBase.sol: totalVotingPower is increased too much in the _finalize function",
+  "issueId": 11,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/11"
+}
