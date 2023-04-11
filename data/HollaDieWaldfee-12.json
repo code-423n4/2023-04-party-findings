@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "HollaDieWaldfee",
+  "risk": "2",
+  "title": "ReraiseETHCrowdfund.sol: party card transfer can be front-run by claiming pending voting power which results in a loss of the voting power",
+  "issueId": 12,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/12"
+}
