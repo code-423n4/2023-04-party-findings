@@ -1,17 +1,18 @@
 # Party DAO Low Risk and Non-Critical Issues
 ## Summary
-| Risk | Title                                                                                      | File                       | Instances |
-| ---- | ------------------------------------------------------------------------------------------ | -------------------------- | --------- |
-| L-01 | Check that none of the `authorities` is zero address                                       | PartyFactory.sol           | 1         |
-| L-02 | ETH is not refunded when `allowArbCallsToSpendPatyETH=true`                                | ArbitraryCallsProposal.sol | 1         |
-| L-03 | Comments state that pre-existing ETH can be used but it can't                              | -                          | 2         |
-| L-04 | Issue due to rounding from previous C4 contest is still present in new crowdfund contracts | -                          | 2         |
-| L-05 | Use `delegationsByContributor[contributor]` instead of `delegate` when minting party card  | InitialETHCrowdfund.sol    | 1         |
-| L-06 | Attacker can decide how voting power is distributed across party cards (griefing attack)   | ReraiseETHCrowdfund.sol    | 1         |
-| L-07 | Use `uint256` for computations such that voting power can be all values in `uint96` range  | PartyGovernance.sol        | 1         |
-| N-01 | Introduce separate `vetoThresholdBps` for vetoing a proposal                               | VetoProposal.sol           | 1         |
-| N-02 | `OperationExecuted` event is defined but never emitted                                     | OperatorProposal.sol       | 1         |
-| N-03 | Use `transferEth` instead of `transfer` for transferring ETH                               | -                          | 4         |
+| Risk | Title                                                                                      | File                           | Instances |
+| ---- | ------------------------------------------------------------------------------------------ | ------------------------------ | --------- |
+| L-01 | Check that none of the `authorities` is zero address                                       | PartyFactory.sol               | 1         |
+| L-02 | ETH is not refunded when `allowArbCallsToSpendPatyETH=true`                                | ArbitraryCallsProposal.sol     | 1         |
+| L-03 | Comments state that pre-existing ETH can be used but it can't                              | -                              | 2         |
+| L-04 | Issue due to rounding from previous C4 contest is still present in new crowdfund contracts | -                              | 2         |
+| L-05 | Use `delegationsByContributor[contributor]` instead of `delegate` when minting party card  | InitialETHCrowdfund.sol        | 1         |
+| L-06 | Attacker can decide how voting power is distributed across party cards (griefing attack)   | ReraiseETHCrowdfund.sol        | 1         |
+| L-07 | Use `uint256` for computations such that voting power can be all values in `uint96` range  | PartyGovernance.sol            | 1         |
+| L-08 | Allow specifying `maximumPrice` for individual NFTs                                        | CollectionBatchBuyOperator.sol | 1         |
+| N-01 | Introduce separate `vetoThresholdBps` for vetoing a proposal                               | VetoProposal.sol               | 1         |
+| N-02 | `OperationExecuted` event is defined but never emitted                                     | OperatorProposal.sol           | 1         |
+| N-03 | Use `transferEth` instead of `transfer` for transferring ETH                               | -                              | 4         |
 
 ## [L-01] Check that none of the `authorities` is zero address
 The [`PartyFactory.createParty`](https://github.com/code-423n4/2023-04-party/blob/440aafacb0f15d037594cebc85fd471729bcb6d9/contracts/party/PartyFactory.sol#L18-L45) function should check that the `authorities` array contains addresses that are not the zero address.  
@@ -237,6 +238,18 @@ index e251646..7571fa8 100644
          // The minting formula for voting power is a bit lossy, so we check
          // for slightly less than 100%.
 ```
+
+## [L-08] Allow specifying `maximumPrice` for individual NFTs
+Currently it is only possible to specify a single `maximumPrice` for all NFTs in the `CollectionBatchBuyOperator` contract ([Link](https://github.com/code-423n4/2023-04-party/blob/440aafacb0f15d037594cebc85fd471729bcb6d9/contracts/operators/CollectionBatchBuyOperator.sol#L25-L26)).  
+
+I recommend that it should be possible to specify a `maximumPrice` for each NFT individually. Thereby it's possible for the party to enforce tighter limits to the amount of ETH that the executor can spend.  
+
+For example the NFT with `id=1` might require a maximum price of `1 ETH` whereas for another NFT with `id=2` a maximum price of `0.1 ETH` can be sufficient.  
+
+Currently both NFTs can only have the same maximum price and the executor is able to spend `2 ETH` at a maximum. This could be further restricted to minimize the trust that needs to be put into the executor.  
+
+This can be implemented by introducing a new `mapping(uint256 => uint256) maximumPrices` mapping. If the entry for an NFT is `!= 0` it should be used as the maximum price. Otherwise `maximumPrice` can be used as a fallback.  
+
 
 ## [N-01] Introduce separate `vetoThresholdBps` for vetoing a proposal
 Currently the same [`passThresholdBps`](https://github.com/PartyDAO/party-protocol/blob/3313c24c85d7429346af939897c19deeef7952f5/contracts/party/PartyGovernance.sol#L81) variable is used for accepting proposals as well as vetoing proposals.  
