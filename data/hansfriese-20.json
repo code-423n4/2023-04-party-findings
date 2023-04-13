@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "hansfriese",
+  "risk": "2",
+  "title": "`VetoProposal.voteToVeto()` checks the proposal status wrongly.",
+  "issueId": 20,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/20"
+}
