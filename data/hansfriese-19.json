@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "hansfriese",
+  "risk": "2",
+  "title": "`ReraiseETHCrowdfund.claimMultiple()` wouldn't work as expected due to the unbounded loop.",
+  "issueId": 19,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/19"
+}
