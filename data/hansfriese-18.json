@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "hansfriese",
+  "risk": "2",
+  "title": "Possible DOS attack using dust in `ReraiseETHCrowdfund._contribute()`",
+  "issueId": 18,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/18"
+}
