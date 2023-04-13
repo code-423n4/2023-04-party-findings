@@ -7,6 +7,8 @@
 | L-03 | Comments state that pre-existing ETH can be used but it can't                              | -                          | 2         |
 | L-04 | Issue due to rounding from previous C4 contest is still present in new crowdfund contracts | -                          | 2         |
 | L-05 | Use `delegationsByContributor[contributor]` instead of `delegate` when minting party card  | InitialETHCrowdfund.sol    | 1         |
+| L-06 | Attacker can decide how voting power is distributed across party cards (griefing attack)   | ReraiseETHCrowdfund.sol    | 1         |
+| L-07 | Use `uint256` for computations such that voting power can be all values in `uint96` range  | PartyGovernance.sol        | 1         |
 | N-01 | Introduce separate `vetoThresholdBps` for vetoing a proposal                               | VetoProposal.sol           | 1         |
 | N-02 | `OperationExecuted` event is defined but never emitted                                     | OperatorProposal.sol       | 1         |
 | N-03 | Use `transferEth` instead of `transfer` for transferring ETH                               | -                          | 4         |
@@ -159,6 +161,81 @@ index 8ab3b5c..6c76e88 100644
          } else if (disableContributingForExistingCard) {
              revert ContributingForExistingCardDisabledError();
          } else if (party.ownerOf(tokenId) == contributor) {
+```
+
+## [L-06] Attacker can decide how voting power is distributed across party cards (griefing attack)
+In the `ReraiseETHCrowdfund` contract the party cards are not minted immediately.  
+The user first gets a crowdfund NFT and later when the crowdfund is won the voting power can be "claimed" which means the actual party cards are minted.  
+
+Voting power is claimed with the [`ReraiseETHCrowdfund.claim`](https://github.com/code-423n4/2023-04-party/blob/440aafacb0f15d037594cebc85fd471729bcb6d9/contracts/crowdfund/ReraiseETHCrowdfund.sol#L256-L303) or [`ReraiseETHCrowdfund.claimMultiple`](https://github.com/code-423n4/2023-04-party/blob/440aafacb0f15d037594cebc85fd471729bcb6d9/contracts/crowdfund/ReraiseETHCrowdfund.sol#L333-L382) function.  
+
+The issue arises from the fact that any User A can claim the party cards of any other User B.  
+And User A can also decide how the voting power is distributed across party cards (within the limits set in the contract).  
+
+Also party cards cannot be reorganized. When a party card has voting power 10 it has voting power 10 forever. It is not possible to divide this party card into two party cards with voting power 5 each.  
+Similarly two party cards cannot be merged into one.  
+
+From the above observations we can understand how this leads to a problem: A User A may want to have 10 party cards with 1 voting power each so he can transfer them individually if needed. The attacker can do a griefing attack and claim 1 party card with voting power 10 so the party card cannot be used as intended.  
+
+The sponsor explained that it is important that anyone can claim party cards so this is not something we can restrict.  
+
+Also I have been told that they have considered for while to allow reorganizing party cards.  
+Therefore I encourage them to actually implement reorganizing party cards.  
+
+Thereby it is ensured that if this griefing attack occurs a user can reorganize his party cards and use them as intended.  
+
+## [L-07] Use `uint256` for computations such that voting power can be all values in `uint96` range
+The voting power in a party is managed in `uint96` variables.  
+
+When we look at the `PartyGovernance._areVotesPassing` function we can see that for the computation the `uint96` variables are cast to `uint256`:  
+
+[Link](https://github.com/code-423n4/2023-04-party/blob/440aafacb0f15d037594cebc85fd471729bcb6d9/contracts/party/PartyGovernance.sol#L1048-L1054)  
+```solidity
+function _areVotesPassing(
+    uint96 voteCount,
+    uint96 totalVotingPower,
+    uint16 passThresholdBps
+) private pure returns (bool) {
+    return (uint256(voteCount) * 1e4) / uint256(totalVotingPower) >= uint256(passThresholdBps);
+}
+```
+
+This is done such that there is no intermediate overflow. If there was no cast, the multiplication `voteCount * 1e4` could overflow and cause a DOS to the Party when `voteCount` is close to `type(uint96).max = ~ 7.9e28`.  
+
+The issue is in the `PartyGovernance._isUnanimousVotes` function which does not convert the voting power to `uint256` and is therefore prone to overflow:  
+
+[Link](https://github.com/code-423n4/2023-04-party/blob/440aafacb0f15d037594cebc85fd471729bcb6d9/contracts/party/PartyGovernance.sol#L1037-L1046)  
+```solidity
+function _isUnanimousVotes(
+    uint96 totalVotes,
+    uint96 totalVotingPower
+) private pure returns (bool) {
+    uint256 acceptanceRatio = (totalVotes * 1e4) / totalVotingPower;
+    // If >= 99.99% acceptance, consider it unanimous.
+    // The minting formula for voting power is a bit lossy, so we check
+    // for slightly less than 100%.
+    return acceptanceRatio >= 0.9999e4;
+}
+```
+
+As long as the mint authorities ensure that the number of votes stays within the safe range (`7.9e28 / 1e4 = ~7.9e24`) this is not a poblem. However the way the `_areVotesPassing` function works shows that the whole `uint96` range should be safe.  
+
+Therefore I propose the following change to the `_isUnanimousVotes` function:  
+
+```diff
+diff --git a/contracts/party/PartyGovernance.sol b/contracts/party/PartyGovernance.sol
+index e251646..7571fa8 100644
+--- a/contracts/party/PartyGovernance.sol
++++ b/contracts/party/PartyGovernance.sol
+@@ -1038,7 +1038,7 @@ abstract contract PartyGovernance is
+         uint96 totalVotes,
+         uint96 totalVotingPower
+     ) private pure returns (bool) {
+-        uint256 acceptanceRatio = (totalVotes * 1e4) / totalVotingPower;
++        uint256 acceptanceRatio = (uint256(totalVotes) * 1e4) / uint256(totalVotingPower);
+         // If >= 99.99% acceptance, consider it unanimous.
+         // The minting formula for voting power is a bit lossy, so we check
+         // for slightly less than 100%.
 ```
 
 ## [N-01] Introduce separate `vetoThresholdBps` for vetoing a proposal
