@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "evan",
+  "risk": "2",
+  "title": "if revertOnFailure is set to false, batchContributeFor doesn't refund properly",
+  "issueId": 45,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/45"
+}
