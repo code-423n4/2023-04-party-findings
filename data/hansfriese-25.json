@@ -1,0 +1,8 @@
+{
+  "contest": 228,
+  "handle": "hansfriese",
+  "risk": "3",
+  "title": "An attacker can contribute to the ETH crowdfund using a flash loan and control the party as he likes.",
+  "issueId": 25,
+  "issueUrl": "https://github.com/code-423n4/2023-04-party-findings/issues/25"
+}
